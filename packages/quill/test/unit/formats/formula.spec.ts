@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'vitest';
+import { describe, expect, test, beforeAll } from 'vitest';
 import {
   createScroll as baseCreateScroll,
   createRegistry,
@@ -10,6 +10,16 @@ const createScroll = (html: string) =>
   baseCreateScroll(html, createRegistry([Formula]));
 
 describe('Formula', () => {
+  // Mock KaTeX for tests
+  beforeAll(() => {
+    // @ts-expect-error - Mocking global
+    window.katex = {
+      render: () => {
+        // Mock render function
+      },
+    };
+  });
+
   describe('XSS Prevention', () => {
     test('escapes HTML tags in formula', () => {
       const editor = new Editor(createScroll('<p><br></p>'));
@@ -34,8 +44,9 @@ describe('Formula', () => {
 
       // Should NOT contain unescaped closing tag or img tag
       expect(html).not.toContain('</span><img');
-      expect(html).not.toContain('onerror=');
-
+      // Should not have the img tag with onerror attribute (even if words appear escaped)
+      expect(html).not.toContain('<img');
+      
       // Should contain escaped version
       expect(html).toContain('&lt;/span&gt;');
       expect(html).toContain('&lt;img');
@@ -49,7 +60,8 @@ describe('Formula', () => {
 
       // Should contain escaped quotes
       expect(html).toContain('&quot;');
-      expect(html).not.toContain('onload=');
+      // The word "onload" might appear but should be escaped, prevent the actual exploit
+      expect(html).not.toContain('" onload="');
     });
 
     test('escapes ampersands in formula', () => {

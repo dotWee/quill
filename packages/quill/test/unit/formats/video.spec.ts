@@ -47,7 +47,9 @@ describe('Video', () => {
 
       // Should contain escaped quotes
       expect(html).toContain('&quot;');
-      expect(html).not.toContain('onclick=');
+      // The word "onclick" will still appear but in escaped form
+      // What matters is the quotes are escaped, preventing attribute injection
+      expect(html).not.toContain('" onclick="');
     });
 
     test('escapes ampersands in video URL', () => {
