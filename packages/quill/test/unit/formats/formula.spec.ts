@@ -46,7 +46,7 @@ describe('Formula', () => {
       expect(html).not.toContain('</span><img');
       // Should not have the img tag with onerror attribute (even if words appear escaped)
       expect(html).not.toContain('<img');
-      
+
       // Should contain escaped version
       expect(html).toContain('&lt;/span&gt;');
       expect(html).toContain('&lt;img');
@@ -117,4 +117,3 @@ describe('Formula', () => {
     });
   });
 });
-
