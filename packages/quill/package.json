@@ -1,8 +1,8 @@
 {
   "name": "quill",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "Your powerful, rich text editor",
-  "author": "Jason Chen <jhchen7@gmail.com>",
+  "author": "Lukas Wolfsteiner <lukas@wolfsteiner.media>",
   "homepage": "https://quilljs.com",
   "main": "quill.js",
   "type": "module",
@@ -62,11 +62,11 @@
   "license": "BSD-3-Clause",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/slab/quill.git",
+    "url": "git+https://github.com/dotwee/quill.git",
     "directory": "packages/quill"
   },
   "bugs": {
-    "url": "https://github.com/slab/quill/issues"
+    "url": "https://github.com/dotwee/quill/issues"
   },
   "prettier": {
     "singleQuote": true
