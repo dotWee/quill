@@ -399,13 +399,14 @@ function convertHTML(
     if (isRoot || blot.statics.blotName === 'list') {
       return parts.join('');
     }
-    const { outerHTML, innerHTML } = blot.domNode as Element;
-    const [start, end] = outerHTML.split(`>${innerHTML}<`);
-    // TODO cleanup
-    if (start === '<table') {
-      return `<table style="border: 1px solid #000;">${parts.join('')}<${end}`;
+    const el = blot.domNode as Element;
+    const shell = el.cloneNode(false) as Element;
+    if (shell.tagName === 'TABLE') {
+      shell.setAttribute('style', 'border: 1px solid #000;');
     }
-    return `${start}>${parts.join('')}<${end}`;
+    const closeTag = `</${shell.tagName.toLowerCase()}>`;
+    const openTag = shell.outerHTML.replace(/<\/[^>]+>$/, '');
+    return `${openTag}${parts.join('')}${closeTag}`;
   }
   return blot.domNode instanceof Element ? blot.domNode.outerHTML : '';
 }
