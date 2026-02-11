@@ -1,3 +1,18 @@
+> **Note:** This is a temporary `quill` fork containing @tapas100 [CVE fix](https://github.com/slab/quill/pull/4774). To prevent nested dependencies to use the unfixed `quill` dependency, set the following in your `package.json`:
+
+```json
+{
+  "dependencies": {
+    "@dotwee/quill": "2.0.5"
+  },
+  "overrides": {
+    "quill": "npm:@dotwee/quill@2.0.5"
+  }
+}
+```
+
+---
+
 <h1 align="center">
   <a href="https://quilljs.com/" title="Quill">Quill Rich Text Editor</a>
 </h1>
@@ -14,9 +29,9 @@
   <a title="Interactive Playground" href="https://quilljs.com/playground/"><strong>Interactive Playground</strong></a>
 </p>
 <p align="center">
-  <a href="https://github.com/slab/quill/actions" title="Build Status"><img src="https://github.com/slab/quill/actions/workflows/main.yml/badge.svg" alt="Build Status"></a>
-  <a href="https://npmjs.com/package/quill" title="Version"><img src="https://img.shields.io/npm/v/quill.svg" alt="Version"></a>
-  <a href="https://npmjs.com/package/quill" title="Downloads"><img src="https://img.shields.io/npm/dm/quill.svg" alt="Downloads"></a>
+  <a href="https://github.com/dotWee/quill/actions" title="Build Status"><img src="https://github.com/dotWee/quill/actions/workflows/main.yml/badge.svg" alt="Build Status"></a>
+  <a href="https://npmjs.com/package/@dotwee/quill" title="Version"><img src="https://img.shields.io/npm/v/quill.svg" alt="Version"></a>
+  <a href="https://npmjs.com/package/@dotwee/quill" title="Downloads"><img src="https://img.shields.io/npm/dm/quill.svg" alt="Downloads"></a>
 </p>
 
 <hr/>
@@ -65,7 +80,7 @@ Take a look at the [Quill](https://quilljs.com/) website for more documentation,
 ## Download
 
 ```shell
-npm install quill
+npm install @dotwee/quill
 ```
 
 ### CDN
