@@ -14,7 +14,8 @@ on:
         required: true
 
 permissions:
-  contents: write
+  id-token: write
+  contents: read
 
 jobs:
   test:
@@ -28,16 +29,113 @@ jobs:
       - name: Git checkout
         uses: actions/checkout@v4
 
-      - name: Use Node.js
+      - name: Setup Node.js with npm registry
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          registry-url: "https://registry.npmjs.org"
 
-      - run: npm ci
-      - run: ./scripts/release.js --version ${{ github.event.inputs.version }} ${{ github.event.inputs.dry-run == 'true' && '--dry-run' || '' }}
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Resolve version and dist-tag
+        id: version
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const crypto = require('crypto');
+            const fs = require('fs');
+            const inputVersion = '${{ github.event.inputs.version }}';
+            let version, distTag;
+
+            if (inputVersion === 'experimental') {
+              const randomId = crypto.randomBytes(5).toString('hex').slice(0, 9);
+              const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+              version = `0.0.0-experimental-${randomId}-${date}`;
+              distTag = 'experimental';
+            } else {
+              const match = inputVersion.match(
+                /^(?:[0-9]+\.){2}(?:[0-9]+)(?:-(dev|alpha|beta|rc)\.[0-9]+)?$/
+              );
+              if (!match) {
+                core.setFailed(`Invalid version: ${inputVersion}`);
+                return;
+              }
+              version = inputVersion;
+              distTag = match[1] || 'latest';
+            }
+
+            const currentVersion = JSON.parse(fs.readFileSync('package.json', 'utf-8')).version;
+            core.info(`Releasing with version: ${currentVersion} -> ${version} and dist-tag: ${distTag}`);
+
+            core.setOutput('version', version);
+            core.setOutput('dist-tag', distTag);
+
+      - name: Bump npm versions
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          npm version "$VERSION" --workspaces --force
+          git add **/package.json
+          npm version "$VERSION" --include-workspace-root --force
+
+      - name: Push version commit and tags
+        if: ${{ steps.version.outputs.dist-tag != 'experimental' && github.event.inputs.dry-run != 'true' }}
+        uses: ad-m/github-push-action@v0.8.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref_name }}
+          tags: true
+
+      - name: Build Quill
+        run: npm run build:quill
+
+      - name: Verify dist version
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const version = '${{ steps.version.outputs.version }}';
+            const distVersion = JSON.parse(
+              fs.readFileSync('packages/quill/dist/package.json', 'utf-8')
+            ).version;
+            if (distVersion !== version) {
+              core.setFailed(
+                `Version mismatch between package.json (${version}) and dist/package.json (${distVersion})`
+              );
+            }
+
+      - name: Copy README to dist
+        run: cp README.md packages/quill/dist/README.md
+
+      - name: Publish to npm
+        if: ${{ github.event.inputs.dry-run != 'true' }}
+        run: npm publish --tag ${{ steps.version.outputs.dist-tag }}
+        working-directory: packages/quill/dist
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish to npm (dry-run)
+        if: ${{ github.event.inputs.dry-run == 'true' }}
+        run: npm publish --tag ${{ steps.version.outputs.dist-tag }} --dry-run
+        working-directory: packages/quill/dist
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create GitHub release
+        if: ${{ steps.version.outputs.dist-tag != 'experimental' && github.event.inputs.dry-run != 'true' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: Version ${{ steps.version.outputs.version }}
+          generate_release_notes: true
+          prerelease: ${{ steps.version.outputs.dist-tag != 'latest' }}
+          make_latest: ${{ steps.version.outputs.dist-tag == 'latest' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create npm package tarball
+        run: npm pack
+        working-directory: packages/quill/dist
 
       - name: Archive npm package tarball
         uses: actions/upload-artifact@v4
