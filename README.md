@@ -3,10 +3,10 @@
 ```json
 {
   "dependencies": {
-    "@dotwee/quill": "2.0.5"
+    "@dotwee/quill": "2.0.7"
   },
   "overrides": {
-    "quill": "npm:@dotwee/quill@2.0.5"
+    "quill": "npm:@dotwee/quill@2.0.7"
   }
 }
 ```
