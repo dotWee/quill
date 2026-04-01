@@ -1,6 +1,6 @@
 {
   "name": "quill-monorepo",
-  "version": "2.0.7",
+  "version": "2.0.8",
   "description": "Quill development environment",
   "private": true,
   "author": "Lukas Wolfsteiner <lukas@wolfsteiner.media>",
